@@ -1,8 +1,41 @@
+file:
+  /etc/sudoers.d/opencredo:
+    exists: true
+    mode: "0644"
+    owner: root
+    group: root
+    filetype: file
+    contains: []
+  /etc/systemd/system/demoapp.service:
+    exists: true
+    mode: "0644"
+    owner: root
+    group: root
+    filetype: file
+    contains: []
+  /home/demoapp/bin/demoapp:
+    exists: true
+    mode: "0744"
+    owner: demoapp
+    group: demoapp
+    filetype: file
+    contains: []
+  /home/opencredo/.ssh/authorized_keys:
+    exists: true
+    mode: "0644"
+    owner: opencredo
+    group: opencredo
+    filetype: file
+    contains: []
 port:
-  tcp:8080:
+  tcp:22:
     listening: true
     ip:
     - 0.0.0.0
+  tcp6:22:
+    listening: true
+    ip:
+    - '::'
   tcp6:8080:
     listening: true
     ip:
@@ -11,17 +44,43 @@ service:
   demoapp:
     enabled: true
     running: true
+  sshd:
+    enabled: true
+    running: true
 user:
   demoapp:
     exists: true
+    uid: 1000
+    gid: 1000
     groups:
     - demoapp
     home: /home/demoapp
     shell: /usr/sbin/nologin
+  opencredo:
+    exists: true
+    uid: 1001
+    gid: 1001
+    groups:
+    - opencredo
+    home: /home/opencredo
+    shell: /bin/bash
+  sshd:
+    exists: true
+    uid: 111
+    gid: 65534
+    groups:
+    - nogroup
+    home: /run/sshd
+    shell: /usr/sbin/nologin
 group:
   demoapp:
     exists: true
+    gid: 1000
+  opencredo:
+    exists: true
+    gid: 1001
 process:
   demoapp:
     running: true
-
+  sshd:
+    running: true

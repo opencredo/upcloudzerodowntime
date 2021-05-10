@@ -38,8 +38,19 @@ build {
     destination = "/tmp/demoapp.service"
   }
 
+  provisioner "file" {
+    source      = "packer/artefact/id_rsa_upcloud.pub"
+    destination = "/tmp/id_rsa_upcloud.pub"
+  }
+
+  provisioner "file" {
+    source      = "packer/artefact/opencredo"
+    destination = "/tmp/opencredo"
+  }
+
   provisioner "shell" {
     inline = [
+      "set -x",
       "apt-get update",
       "apt-get upgrade -y",
       "useradd -m -U -s /usr/sbin/nologin demoapp",
@@ -47,13 +58,23 @@ build {
       "mv /tmp/demoapp /home/demoapp/bin",
       "chown -R demoapp:demoapp /home/demoapp",
       "chmod u+x /home/demoapp/bin/demoapp",
+      "find /home/demoapp",
       "mv /tmp/demoapp.service /etc/systemd/system/demoapp.service",
-      "systemctl enable demoapp.service --now"
+      "systemctl enable demoapp.service --now",
+      "useradd -m -U -s /bin/bash opencredo",
+      "mkdir -p /home/opencredo/.ssh",
+      "chmod 0700 /home/opencredo/.ssh",
+      "mv /tmp/id_rsa_upcloud.pub /home/opencredo/.ssh/authorized_keys",
+      "chown -R opencredo:opencredo /home/opencredo",
+      "mv /tmp/opencredo /etc/sudoers.d/opencredo"
     ]
   }
 
   provisioner "goss" {
-    tests = [ "packer/artefact/goss.yaml" ]
+    pause_before = "30s"
+    max_retries  = 5
+
+    tests = ["packer/artefact/goss.yaml"]
   }
 }
 
