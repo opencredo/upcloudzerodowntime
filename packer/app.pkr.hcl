@@ -33,6 +33,11 @@ build {
     destination = "/tmp/demoapp"
   }
 
+  provisioner "file" {
+    source = "packer/artefact/demoapp.service"
+    destination = "/tmp/demoapp.service"
+  }
+
   provisioner "shell" {
     inline = [
       "apt-get update",
@@ -41,7 +46,9 @@ build {
       "mkdir -p /home/demoapp/bin",
       "mv /tmp/demoapp /home/demoapp/bin",
       "chown -R demoapp:demoapp /home/demoapp",
-      "chmod u+x /home/demoapp/bin/demoapp"
+      "chmod u+x /home/demoapp/bin/demoapp",
+      "mv /tmp/demoapp.service /etc/systemd/system/demoapp.service",
+      "systemctl enable demoapp.service --now"
     ]
   }
 }

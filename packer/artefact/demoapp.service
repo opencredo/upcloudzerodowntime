@@ -1,0 +1,15 @@
+[Unit]
+Description=Demoapp Service
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+StartLimitAction=reboot
+User=demoapp
+ExecStart=/home/demoapp/bin/demoapp
+
+[Install]
+WantedBy=multi-user.target
+
