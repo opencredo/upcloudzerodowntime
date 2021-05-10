@@ -28,10 +28,20 @@ source "upcloud" "app" {
 build {
   sources = ["source.upcloud.app"]
 
+  provisioner "file" {
+    source = "../demoapp"
+    destination = "/tmp/demoapp"
+  }
+
   provisioner "shell" {
     inline = [
       "apt-get update",
-      "apt-get upgrade -y"
+      "apt-get upgrade -y",
+      "useradd -m -U -s /bin/nologin demoapp",
+      "mkdir -p /home/demoapp/bin",
+      "mv /tmp/demoapp /home/demoapp/bin",
+      "chown -R demoapp:demoapp /home/demoapp",
+      "chmod u+x /home/demoapp/bin/demoapp"
     ]
   }
 }
