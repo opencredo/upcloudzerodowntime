@@ -29,12 +29,12 @@ build {
   sources = ["source.upcloud.app"]
 
   provisioner "file" {
-    source = "demoapp"
+    source      = "demoapp"
     destination = "/tmp/demoapp"
   }
 
   provisioner "file" {
-    source = "packer/artefact/demoapp.service"
+    source      = "packer/artefact/demoapp.service"
     destination = "/tmp/demoapp.service"
   }
 
@@ -50,6 +50,10 @@ build {
       "mv /tmp/demoapp.service /etc/systemd/system/demoapp.service",
       "systemctl enable demoapp.service --now"
     ]
+  }
+
+  provisioner "goss" {
+    tests = [ "packer/artefact/goss.yaml" ]
   }
 }
 

@@ -1,0 +1,27 @@
+port:
+  tcp:8080:
+    listening: true
+    ip:
+    - 0.0.0.0
+  tcp6:8080:
+    listening: true
+    ip:
+    - '::'
+service:
+  demoapp:
+    enabled: true
+    running: true
+user:
+  demoapp:
+    exists: true
+    groups:
+    - demoapp
+    home: /home/demoapp
+    shell: /usr/sbin/nologin
+group:
+  demoapp:
+    exists: true
+process:
+  demoapp:
+    running: true
+
