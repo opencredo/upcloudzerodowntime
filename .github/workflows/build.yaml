@@ -46,4 +46,13 @@ jobs:
                                   command: validate
                                   arguments: -syntax-only
                                   target: packer/app.pkr.hcl
+                        - name: Build Image
+                          uses: hashicorp/packer-github-actions@master
+                          with:
+                                  command: build
+                                  target: packer/app.pkr.hcl
+                          env:
+                                  PACKER_LOG: 1
+                                  UPCLOUD_API_PASSWORD: ${{ secrets.UPCLOUD_API_PASSWORD }}
+                                  UPCLOUD_API_USER: ${{ secrets.UPCLOUD_API_USER }}
 
