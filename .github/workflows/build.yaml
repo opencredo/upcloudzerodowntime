@@ -15,5 +15,25 @@ jobs:
                           uses: actions/setup-go@v2
                           with:
                                   go-version: '^1.16.0'
-                        - run: cd go && go build -o demoapp main.go
+                        - name: Build App
+                          run: cd go && CGO_ENABLED=0 go build -o demoapp main.go && cd ..
+
+        image:
+                name: Image
+                runs-on: ubuntu-latest
+                needs: build
+                steps:
+                        - name: Checkout
+                          uses: actions/checkout@v2
+                        - name: Init Packer Plugins
+                          uses: hashicorp/packer-github-actions@v0.2.0
+                          with:
+                                  command: init
+                                  target: packer/app.pkr.hcl
+                        - name: Validate Template
+                          uses: hashicorp/packer-github-actions@v0.2.0
+                          with:
+                                  command: validate
+                                  arguments: -syntax-only
+                                  target: packer/app.pkr.hcl
 
