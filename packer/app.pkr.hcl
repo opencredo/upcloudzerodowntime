@@ -29,7 +29,7 @@ build {
   sources = ["source.upcloud.app"]
 
   provisioner "file" {
-    source = "../demoapp"
+    source = "demoapp"
     destination = "/tmp/demoapp"
   }
 
