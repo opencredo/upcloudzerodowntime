@@ -42,7 +42,7 @@ build {
     inline = [
       "apt-get update",
       "apt-get upgrade -y",
-      "useradd -m -U -s /bin/nologin demoapp",
+      "useradd -m -U -s /usr/sbin/nologin demoapp",
       "mkdir -p /home/demoapp/bin",
       "mv /tmp/demoapp /home/demoapp/bin",
       "chown -R demoapp:demoapp /home/demoapp",
