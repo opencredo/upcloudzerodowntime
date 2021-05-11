@@ -74,11 +74,11 @@ jobs:
           cd terraform
           echo "template_id = \"$(upctl storage list --template -o json | jq '[.[] | select(.title | startswith("oc-uc-app-"))] | sort_by(.title) | reverse[0] | .uuid' -r)\"" > terraform.auto.tfvars
       - name: Terraform Init
-        run: terraform init
+        run: cd terraform && terraform init
       - name: Terraform Plan
-        run: terraform plan
+        run: cd terraform && terraform plan
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: cd terraform && terraform apply -auto-approve
 
   image_tidy:
     name: Tidy Old Images
