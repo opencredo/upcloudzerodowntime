@@ -71,8 +71,9 @@ jobs:
           ./upctl -h
       - name: Get Latest Image
         run: |
+          set -o pipefail
           cd terraform
-          echo "template_id = \"$(upctl storage list --template -o json | jq '[.[] | select(.title | startswith("oc-uc-app-"))] | sort_by(.title) | reverse[0] | .uuid' -r)\"" > terraform.auto.tfvars
+          echo "template_id = \"$(./upctl storage list --template -o json | jq '[.[] | select(.title | startswith("oc-uc-app-"))] | sort_by(.title) | reverse[0] | .uuid' -r)\"" > terraform.auto.tfvars
       - name: Terraform Init
         run: cd terraform && terraform init
       - name: Terraform Plan
