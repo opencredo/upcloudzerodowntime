@@ -63,7 +63,7 @@ jobs:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
       - name: Get Upctl CLI
         run: |
-          curl -L o upcloud_cli.tar.gz https://github.com/UpCloudLtd/upcloud-cli/releases/download/v1.0.0/upcloud-cli_1.0.0_linux_x86_64.tar.gz
+          curl -L -o upcloud_cli.tar.gz https://github.com/UpCloudLtd/upcloud-cli/releases/download/v1.0.0/upcloud-cli_1.0.0_linux_x86_64.tar.gz
           tar zxf upcloud_cli.tar.gz
           chmod +x upctl
           ./upctl -h
@@ -85,7 +85,7 @@ jobs:
     steps:
       - name: Get Upctl CLI
         run: |
-          curl -L o upcloud_cli.tar.gz https://github.com/UpCloudLtd/upcloud-cli/releases/download/v1.0.0/upcloud-cli_1.0.0_linux_x86_64.tar.gz
+          curl -L -o upcloud_cli.tar.gz https://github.com/UpCloudLtd/upcloud-cli/releases/download/v1.0.0/upcloud-cli_1.0.0_linux_x86_64.tar.gz
           tar zxf upcloud_cli.tar.gz
           chmod +x upctl
           ./upctl -h
