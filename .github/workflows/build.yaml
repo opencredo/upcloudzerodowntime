@@ -52,10 +52,36 @@ jobs:
           UPCLOUD_API_PASSWORD: ${{ secrets.UPCLOUD_API_PASSWORD }}
           UPCLOUD_API_USER: github
 
+  terraform:
+    name: Apply Terraform
+    runs-on: ubuntu-latest
+    needs: image
+    steps:
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+      - name: Get Upctl CLI
+        run: |
+          curl -L o upcloud_cli.tar.gz https://github.com/UpCloudLtd/upcloud-cli/releases/download/v1.0.0/upcloud-cli_1.0.0_linux_x86_64.tar.gz
+          tar zxf upcloud_cli.tar.gz
+          chmod +x upctl
+          ./upctl -h
+      - name: Get Latest Image
+        run |
+          cd terraform
+          echo "template_id = \"$(upctl storage list --template -o json | jq '[.[] | select(.title | startswith("oc-uc-app-"))] | sort_by(.title) | reverse[0] | .uuid' -r)\"" > terraform.auto.tfvars
+      - name: Terraform Init
+        run: terraform init
+      - name: Terraform Plan
+        run: terraform plan
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+
   image_tidy:
     name: Tidy Old Images
     runs-on: ubuntu-latest
-    needs: image
+    needs: terraform
     steps:
       - name: Get Upctl CLI
         run: |
