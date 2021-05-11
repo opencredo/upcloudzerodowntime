@@ -68,7 +68,7 @@ jobs:
           chmod +x upctl
           ./upctl -h
       - name: Get Latest Image
-        run |
+        run: |
           cd terraform
           echo "template_id = \"$(upctl storage list --template -o json | jq '[.[] | select(.title | startswith("oc-uc-app-"))] | sort_by(.title) | reverse[0] | .uuid' -r)\"" > terraform.auto.tfvars
       - name: Terraform Init
