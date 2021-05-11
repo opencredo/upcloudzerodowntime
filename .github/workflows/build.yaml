@@ -52,3 +52,21 @@ jobs:
           UPCLOUD_API_PASSWORD: ${{ secrets.UPCLOUD_API_PASSWORD }}
           UPCLOUD_API_USER: github
 
+  image_tidy:
+    name: Tidy Old Images
+    runs-on: ubuntu-latest
+    needs: image
+    steps:
+      - name: Get Upctl CLI
+        run: |
+          curl -L o upcloud_cli.tar.gz https://github.com/UpCloudLtd/upcloud-cli/releases/download/v1.0.0/upcloud-cli_1.0.0_linux_x86_64.tar.gz
+          tar zxf upcloud_cli.tar.gz
+          chmod +x upctl
+          ./upctl -h
+      - name: Delete all but the last 5 images
+        run: |
+          ./upctl storage list --template -o json | jq '.[] | .title' -r | sort | head -n -5 | xargs -I{} ./upctl storage delete {}
+        env:
+          UPCLOUD_API_PASSWORD: ${{ secrets.UPCLOUD_API_PASSWORD }}
+          UPCLOUD_API_USER: github
+ 
