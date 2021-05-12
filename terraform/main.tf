@@ -12,3 +12,7 @@ resource "upcloud_server" "app" {
     type = "public"
   }
 }
+
+resource "upcloud_floating_ip_address" "app_ip" {
+  mac_address = upcloud_server.app.network_interface[0].mac_address
+}
