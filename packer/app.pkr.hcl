@@ -53,6 +53,7 @@ build {
       "set -x",
       "apt-get update",
       "apt-get upgrade -y",
+      "grep -qxF 'source /etc/network/interfaces.d/*' /etc/network/interfaces || echo 'source /etc/network/interfaces.d/*' >> /etc/network/interfaces",
       "useradd -m -U -s /usr/sbin/nologin demoapp",
       "mkdir -p /home/demoapp/bin",
       "mv /tmp/demoapp /home/demoapp/bin",

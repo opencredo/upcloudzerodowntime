@@ -2,6 +2,7 @@ resource "upcloud_server" "app" {
   hostname = "myapplication.com"
   zone     = "uk-lon1"
   plan     = "1xCPU-1GB"
+  metadata = true
 
   template {
     storage = var.template_id
