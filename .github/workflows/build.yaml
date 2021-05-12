@@ -75,8 +75,8 @@ jobs:
           cd terraform
           echo "template_id = \"$(../upctl storage list --template -o json | jq '[.[] | select(.title | startswith("oc-uc-app-"))] | sort_by(.title) | reverse[0] | .uuid' -r)\"" > terraform.auto.tfvars
         env:
-          UPCLOUD_API_PASSWORD: ${{ secrets.UPCLOUD_API_PASSWORD }}
-          UPCLOUD_API_USER: github
+          UPCLOUD_PASSWORD: ${{ secrets.UPCLOUD_API_PASSWORD }}
+          UPCLOUD_USERNAME: github
       - name: Terraform Init
         run: cd terraform && terraform init
       - name: Terraform Plan
@@ -99,6 +99,6 @@ jobs:
         run: |
           ./upctl storage list --template -o json | jq '.[] | .title' -r | sort | head -n -5 | xargs -I{} ./upctl storage delete {}
         env:
-          UPCLOUD_API_PASSWORD: ${{ secrets.UPCLOUD_API_PASSWORD }}
-          UPCLOUD_API_USER: github
+          UPCLOUD_PASSWORD: ${{ secrets.UPCLOUD_API_PASSWORD }}
+          UPCLOUD_USERNAME: github
  
