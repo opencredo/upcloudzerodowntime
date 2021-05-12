@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-const Version = "1.0"
+const Version = "1.1"
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
