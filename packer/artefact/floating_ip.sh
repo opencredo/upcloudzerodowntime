@@ -16,10 +16,11 @@ if [[ ! -e /etc/network/interfaces.d/floating_ip ]]; then
   done
 
   echo "Got metadata"
-  ip_address=$(echo $ifaces | jq '.network | .interfaces[] | .ip_addresses[] | select(.floating == true) | .address' -r)
+  echo $ifaces
+  ip_address=$(echo $ifaces | jq '.ip_addresses[] | select(.floating == true) | .address' -r)
   echo "IP Address $ip_address"
 
-  echo <<EOF > /etc/network/interfaces.d/floating_ip
+  cat <<EOF > /etc/network/interfaces.d/floating_ip
 auto eth0:1
 iface eth0:1 inet static
 address $ip_address
@@ -28,4 +29,3 @@ EOF
 
   systemctl restart networking.service
 fi
-

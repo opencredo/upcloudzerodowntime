@@ -63,6 +63,7 @@ build {
       "set -x",
       "apt-get update",
       "apt-get upgrade -y",
+      "apt-get install -y jq",
       "grep -qxF 'source /etc/network/interfaces.d/*' /etc/network/interfaces || echo 'source /etc/network/interfaces.d/*' >> /etc/network/interfaces",
       "mv /tmp/floating_ip.sh /usr/local/bin/floating_ip.sh",
       "mv /tmp/floating_ip.service /etc/systemd/system/floating_ip.service",
