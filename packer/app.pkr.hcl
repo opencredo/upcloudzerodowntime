@@ -48,12 +48,25 @@ build {
     destination = "/tmp/opencredo"
   }
 
+  provisioner "file" {
+    source      = "packer/artefact/floating_ip.sh"
+    destination = "/tmp/floating_ip.sh"
+  }
+
+  provisioner "file" {
+    source      = "packer/artefact/floating_ip.service"
+    destination = "/tmp/floating_ip.service"
+  }
+
   provisioner "shell" {
     inline = [
       "set -x",
       "apt-get update",
       "apt-get upgrade -y",
       "grep -qxF 'source /etc/network/interfaces.d/*' /etc/network/interfaces || echo 'source /etc/network/interfaces.d/*' >> /etc/network/interfaces",
+      "mv /tmp/floating_ip.sh /usr/local/bin/floating_ip.sh",
+      "mv /tmp/floating_ip.service /etc/systemd/system/floating_ip.service",
+      "systemctl enable floating_ip.service",
       "useradd -m -U -s /usr/sbin/nologin demoapp",
       "mkdir -p /home/demoapp/bin",
       "mv /tmp/demoapp /home/demoapp/bin",
