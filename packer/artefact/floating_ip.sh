@@ -12,7 +12,7 @@ if [[ ! -e /etc/network/interfaces.d/floating_ip ]]; then
     echo "Getting metadata..."
     ifaces=$($METADATA_COMMAND | jq '.network | .interfaces[] | select( .ip_addresses[] | .floating == true)')
     echo "Sleeping"
-    sleep 1
+    sleep 0.1
   done
 
   echo "Got metadata"

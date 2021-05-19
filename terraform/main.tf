@@ -26,11 +26,16 @@ resource "null_resource" "metadata_update" {
 
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = <<-EOF
-      curl -L -o upcloud_cli.tar.gz https://github.com/UpCloudLtd/upcloud-cli/releases/download/v1.0.0/upcloud-cli_1.0.0_linux_x86_64.tar.gz
-      tar zxf upcloud_cli.tar.gz
-      chmod +x upctl
-      ./upctl server modify ${upcloud_server.app.id} --disable-metadata && ./upctl server modify ${upcloud_server.app.id} --enable-metadata
+    //command     = <<-EOF
+    //  curl -L -o upcloud_cli.tar.gz https://github.com/UpCloudLtd/upcloud-cli/releases/download/v1.0.0/upcloud-cli_1.0.0_linux_x86_64.tar.gz
+    //  tar zxf upcloud_cli.tar.gz
+    //  chmod +x upctl
+    //  ./upctl server modify ${upcloud_server.app.id} --disable-metadata && ./upctl server modify ${upcloud_server.app.id} --enable-metadata
+    //EOF
+    command = <<-EOF
+      auth=$(echo "$UPCLOUD_USERNAME:$UPCLOUD_PASSWORD" | base64)
+      curl -H "Content-Type: application/json" -H"Authorization: Basic $auth" -XPUT https://api.upcloud.com/1.3/server/$1 -d '{ "server": { "metadata": "no" } }'
+      curl -H "Content-Type: application/json" -H"Authorization: Basic $auth" -XPUT https://api.upcloud.com/1.3/server/$1 -d '{ "server": { "metadata": "yes" } }'
     EOF
   }
 }
