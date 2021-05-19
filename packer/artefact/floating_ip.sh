@@ -7,12 +7,15 @@ METADATA_COMMAND="curl --max-time 1 -s http://169.254.169.254/metadata/v1.json"
 echo "Started getting floating IPs"
 if [[ ! -e /etc/network/interfaces.d/floating_ip ]]; then
   echo "Getting metadata..."
-  ifaces=$($METADATA_COMMAND | jq '.network | .interfaces[] | select( .ip_addresses[] | .floating == true)')
+  ifaces=""
   while [[ -z "$ifaces" ]]; do
-    echo "Getting metadata..."
-    ifaces=$($METADATA_COMMAND | jq '.network | .interfaces[] | select( .ip_addresses[] | .floating == true)')
-    echo "Sleeping"
     sleep 0.1
+    echo "Getting metadata..."
+    text=$($METADATA_COMMAND)
+    if [[ "$text" != "Metadata not available." ]]; then
+      ifaces=$($METADATA_COMMAND | jq '.network | .interfaces[] | select( .ip_addresses[] | .floating == true)')
+    fi
+    echo "Sleeping"
   done
 
   echo "Got metadata"

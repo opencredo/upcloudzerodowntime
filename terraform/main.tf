@@ -34,8 +34,8 @@ resource "null_resource" "metadata_update" {
     //EOF
     command = <<-EOF
       auth=$(echo "$UPCLOUD_USERNAME:$UPCLOUD_PASSWORD" | base64)
-      curl -H "Content-Type: application/json" -H"Authorization: Basic $auth" -XPUT https://api.upcloud.com/1.3/server/$1 -d '{ "server": { "metadata": "no" } }'
-      curl -H "Content-Type: application/json" -H"Authorization: Basic $auth" -XPUT https://api.upcloud.com/1.3/server/$1 -d '{ "server": { "metadata": "yes" } }'
+      curl -H "Content-Type: application/json" -H"Authorization: Basic $auth" -XPUT https://api.upcloud.com/1.3/server/${upcloud_server.app.id} -d '{ "server": { "metadata": "no" } }'
+      curl -H "Content-Type: application/json" -H"Authorization: Basic $auth" -XPUT https://api.upcloud.com/1.3/server/${upcloud_server.app.id} -d '{ "server": { "metadata": "yes" } }'
     EOF
   }
 }
