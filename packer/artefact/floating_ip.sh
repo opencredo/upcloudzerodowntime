@@ -11,9 +11,9 @@ if [[ ! -e /etc/network/interfaces.d/floating_ip ]]; then
   while [[ -z "$ifaces" ]]; do
     sleep 0.1
     echo "Getting metadata..."
-    text=$($METADATA_COMMAND)
-    if [[ "$text" != "Metadata not available." ]]; then
-      ifaces=$($METADATA_COMMAND | jq '.network | .interfaces[] | select( .ip_addresses[] | .floating == true)')
+    text=$($METADATA_COMMAND || true)
+    if [[ "$text" != "Metadata not available." && ! -z "$text" ]]; then
+      ifaces=$(echo $text | jq '.network | .interfaces[] | select( .ip_addresses[] | .floating == true)')
     fi
     echo "Sleeping"
   done
