@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-const Version = "1.2"
+const Version = "1.3"
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

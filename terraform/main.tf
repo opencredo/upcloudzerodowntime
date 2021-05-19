@@ -12,6 +12,10 @@ resource "upcloud_server" "app" {
   network_interface {
     type = "public"
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "upcloud_floating_ip_address" "app_ip" {
