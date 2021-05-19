@@ -16,6 +16,32 @@ resource "upcloud_server" "app" {
   lifecycle {
     create_before_destroy = true
   }
+
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+
+    command = <<-EOF
+      fail_count=0
+
+      while true; do
+        response=$(curl --write-out %%{http_code} --silent --output /dev/null ${self.network_interface[0].ip_address})
+
+        if [[ "$response" == "200" ]]; then
+          echo "Application is available"
+          exit 0
+        fi
+
+        fail_count=$((fail_count + 1))
+
+        if (( fail_count > 30 )); then
+          echo "Application is still unavailable"
+          exit 2
+        fi
+
+        sleep 10
+      done
+    EOF
+  }
 }
 
 resource "upcloud_floating_ip_address" "app_ip" {
@@ -30,12 +56,7 @@ resource "null_resource" "metadata_update" {
 
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    //command     = <<-EOF
-    //  curl -L -o upcloud_cli.tar.gz https://github.com/UpCloudLtd/upcloud-cli/releases/download/v1.0.0/upcloud-cli_1.0.0_linux_x86_64.tar.gz
-    //  tar zxf upcloud_cli.tar.gz
-    //  chmod +x upctl
-    //  ./upctl server modify ${upcloud_server.app.id} --disable-metadata && ./upctl server modify ${upcloud_server.app.id} --enable-metadata
-    //EOF
+
     command = <<-EOF
       auth=$(echo "$UPCLOUD_USERNAME:$UPCLOUD_PASSWORD" | base64)
       curl -H "Content-Type: application/json" -H"Authorization: Basic $auth" -XPUT https://api.upcloud.com/1.3/server/${upcloud_server.app.id} -d '{ "server": { "metadata": "no" } }'
