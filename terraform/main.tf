@@ -17,6 +17,7 @@ resource "upcloud_server" "app" {
     create_before_destroy = true
   }
 
+  # Ensure the new server is responding before finishing deployment
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
 
