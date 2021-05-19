@@ -1,13 +1,13 @@
 package main
 
 import (
-	"html"
-	"net/http"
 	"fmt"
+	"html"
 	"log"
+	"net/http"
 )
 
-const Version = "1.1"
+const Version = "1.2"
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
