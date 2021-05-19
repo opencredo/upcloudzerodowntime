@@ -24,7 +24,8 @@ resource "upcloud_server" "app" {
       fail_count=0
 
       while true; do
-        response=$(curl --write-out %%{http_code} --silent --output /dev/null ${self.network_interface[0].ip_address})
+        response=$(curl --write-out %%{http_code} --silent --output /dev/null http://${self.network_interface[0].ip_address}:8080)
+        echo "Response: $response"
 
         if [[ "$response" == "200" ]]; then
           echo "Application is available"
@@ -38,6 +39,7 @@ resource "upcloud_server" "app" {
           exit 2
         fi
 
+        echo "Sleeping"
         sleep 10
       done
     EOF
