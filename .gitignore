@@ -1,4 +1,5 @@
 *.auto.tfvars
 .terraform
 .terraform.lock.hcl
+.ssh_keys
 
