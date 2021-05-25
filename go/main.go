@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const Version = "1.4"
+const Version = "1.5"
 
 func main() {
 	startedTime := time.Now()
