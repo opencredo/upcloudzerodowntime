@@ -328,3 +328,20 @@ and then later in the logs:
 We can see the server being created first and then destroyed. At this point, we can't really eliminate the last
 5 seconds of downtime without tweaking our infrastructure and introducing something like a reverse proxy or a
 load balancer.
+
+## <a name="trick2"></a>Protecting Against Bad Services
+
+There is one additional problem we can try to overcome; what if our new version fails upon deployment or it returns
+an error for a period after startup (maybe it take some time for a database connection to be established). Is it
+possible to protect against that scenario?
+
+Yes! In essence, we would like Terraform to check the health of our new `upcloud_server` resource before it goes ahead
+and destroys the old resource and flips the floating IP over to our new server resource.
+
+We can use the `local-exec` provisioner to do this again.
+
+We add the following to the `terraform/main.tf` file:
+
+```terraform
+
+```
