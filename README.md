@@ -1,10 +1,11 @@
 # Reducing Terraform Deployment Downtime
 
-This GitHub repo demonstrates the usage of a couple Terraform features that can reduce the downtime or
-unavailability of Terraform managed resources. For this demonstration we've built an extremely simple
-Go HTTP server. We package this server into a custom machine image using [Packer](https://www.packer.io)
-and the [UpCloud](https://upcloud.com) Packer [plugin](https://github.com/UpCloudLtd/packer-plugin-upcloud).
-This custom image is deployed on to an UpCloud server using Terraform.
+This GitHub repo demonstrates the usage of a couple of Terraform features (you can skip directly to them
+[here](#trick1) and [here](#trick2)) that can reduce the downtime or unavailability of Terraform managed
+resources. For this demonstration we've built an extremely simple Go HTTP server. We package this server
+into a custom machine image using [Packer](https://www.packer.io) and the [UpCloud](https://upcloud.com)
+Packer [plugin](https://github.com/UpCloudLtd/packer-plugin-upcloud). This custom image is deployed on to
+an UpCloud server using Terraform.
 
 ## Repo Structure
 
@@ -286,3 +287,44 @@ get a response as before.
 
 If we bump the version number (change `const Version = "1.1"` in `go/main.go`) and push that code to GitHub
 we will see our endpoint go down and approximately a minute later come back up again.
+
+## <a name="trick1"></a>Reducing Downtime (tag [1.2](https://github.com/opencredo/upcloudzerodowntime/tree/1.2))
+
+In the Terraform job logs in GitHub Actions we can see the following:
+
+![Destroy Before Create Logs](docs/destroy_before_create.png)
+
+This shows that the _old_ server is being destroyed __before__ the _new_ server is created and this time is the bulk of
+our downtime. We can mitigate this by using Terraform's `lifecycle` [block](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html). With this configuration we can ask Terraform to create the _new_ server __before__ it
+destroys the _old_ server.
+
+This configuration is available on all Terraform resources but you should consider if it is needed as it can affect
+your costs (as you'll have parallel resources) and some resources may need their old version to free up a dependency.
+
+In our case, though, this will be useful so we can add this block to the `upcloud_server` resource:
+
+```terraform
+  lifecycle {
+    create_before_destroy = true
+  }
+```
+
+That should be all we need to do.
+
+### Experiment
+
+If we bump the version number (change `const Version = "1.2"` in `go/main.go`) and push that code to GitHub
+we will see our endpoint go down. This time it will take longer for the endpoint to go down and it only take
+around 5 seconds for it to come back up again.
+
+We can take a look at the logs again:
+
+![Create Before Destroy Logs 1](docs/create_before_destroy_1.png)
+
+and then later in the logs:
+
+![Create Before Destroy Logs 2](docs/create_before_destroy_2.png)
+
+We can see the server being created first and then destroyed. At this point, we can't really eliminate the last
+5 seconds of downtime without tweaking our infrastructure and introducing something like a reverse proxy or a
+load balancer.
