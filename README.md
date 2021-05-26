@@ -85,11 +85,11 @@ that does this:
 
 ### Packer
 
-In the initial state we are using the file `provisioner` to copy across the following pertinent files:
+In the initial state we are using the `file` provisioner to copy across the following pertinent files:
 * `demoapp` - Our HTTP server.
 * `demoapp.service` - A systemd unit that starts the HTTP server when the machine comes up.
 
-We then use a shell `provisioner` to:
+We then use a `shell` provisioner to:
 * Update the server to the latest available packages.
 * Copy the files above to their correct locations and give them the correct ownership and permissions
 * Enable the `demoapp.service` systemd unit
@@ -173,11 +173,116 @@ $ pinghttp -freq 1s -url http://94.237.121.69:8080
 ┌────────────────────────────────────────────────┐
 │    Up Time     │      15s       │(1.0) Hello,  │
 │────────────────────────────────────────────────│
-│   Down Time    │       0s       │              │                                       └────────────────────────────────────────────────┘
+│   Down Time    │       0s       │              │
+└────────────────────────────────────────────────┘
 ```
 
 If we bump the version number (change `const Version = "1.0"` in `go/main.go`) and push that code to GitHub
-we will see our endpoint go down and never return.
+we will see our endpoint go down and never return (though it might, see below).
 
+## Floating IP (tag: [1.1](https://github.com/opencredo/upcloudzerodowntime/tree/1.1))
 
+The IP addresses assigned to an UpCloud server are fairly random. While you may get the same IP address between
+server destory/create cycles it isn't guaranteed. To overcome this we will need to use UpCloud's floating IP
+facility.
 
+There are no changes to the Go HTTP server or our CI/CD pipeline.
+
+### Terraform
+
+We will add an `upcloud_floating_ip_address_resource` to our Terraform:
+
+```terraform
+resource "upcloud_floating_ip_address" "app_ip" {
+  mac_address = upcloud_server.app.network_interface[0].mac_address
+}
+```
+
+This resource will assign a public IPv4 address to our servers network interface as identified by the `mac_address`
+value. As of today, this isn't quite enough as the metadata server (a UpCloud provided web service that tells a
+server information about itself) doesn't automatically refresh. To workaround this we can turn it off and on again
+with a Terraform `null_resource`:
+
+```terraform
+resource "null_resource" "metadata_update" {
+
+  triggers = {
+    mac_address = upcloud_floating_ip_address.app_ip.mac_address
+  }
+
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+
+    command = <<-EOF
+      auth=$(echo "$UPCLOUD_USERNAME:$UPCLOUD_PASSWORD" | base64)
+      curl -H "Content-Type: application/json" -H"Authorization: Basic $auth" -XPUT https://api.upcloud.com/1.3/server/${upcloud_server.app.id} -d '{ "server": { "metadata": "no" } }'
+      curl -H "Content-Type: application/json" -H"Authorization: Basic $auth" -XPUT https://api.upcloud.com/1.3/server/${upcloud_server.app.id} -d '{ "server": { "metadata": "yes" } }'
+    EOF
+  }
+}
+```
+
+This `null_resource` is triggered by any change to the `upcloud_floating_ip_address.mac_address` value (so when we're
+assigning the IP to a new server). It uses a `local-exec` provisioner to run a small bash script on the machine performing
+the deployment (a HashiCorp Terraform Cloud server in our case).
+
+This script uses the UpCloud JSON API to turn off the metadata service and turn it back on again.
+
+### Packer
+
+In order to make use of the floating IP address the Linux operating system needs to be made aware of it. To do this,
+the following new files are copied to the custom machine image:
+
+* `floating_ip.sh` - A shell script that pings the metadata service looking for a floating IP. If it already has
+  a floating IP this script does nothing.
+* `floating_ip.service` - A systemd unit that runs the above script as a oneshot (i.e. runs once per boot)
+
+The `shell` provisioner is updated to perform the following actions:
+
+* Copies the above 2 files to the correct locations and ensure their ownership and permissions are correct.
+* Enables the `floating_ip.service` systemd unit
+* Updates the `/etc/network/interfaces` configuration to source configuration from `/etc/network/interfaces.d` (where
+  `floating_ip.sh` will write the floating IP configuration)
+
+### Experiment
+
+If we commit this code at this point we should get a new server with a floating IP.
+
+```bash
+$ upctl server show (upctl server list -o json | jq '.[0] | .uuid' -r)
+  
+  Common
+    UUID:          0000a29f-948a-4085-9f29-1aef36d93b0b     
+    Hostname:      myapplication.com                        
+    Title:         myapplication.com (managed by terraform) 
+    Plan:          1xCPU-1GB                                
+    Zone:          uk-lon1                                  
+    State:         started                                  
+    Simple Backup: no                                       
+    Licence:       0                                        
+    Metadata:      True                                     
+    Timezone:      UTC                                      
+    Host ID:       5908480643                               
+    Tags:                                                   
+
+  Storage: (Flags: B = bootdisk, P = part of plan)
+
+     UUID                                   Title                              Type   Address   Size (GiB)   Flags 
+    ────────────────────────────────────── ────────────────────────────────── ────── ───────── ──────────── ───────
+     017518e0-cca4-44c6-bc0c-494c2fb9ae99   terraform-myapplication.com-disk   disk   ide:0:0           25   P     
+    
+  NICs: (Flags: S = source IP filtering, B = bootable)
+
+     #   Type     IP Address                 MAC Address         Network                                Flags 
+    ─── ──────── ────────────────────────── ─────────────────── ────────────────────────────────────── ───────
+     1   public   IPv4: 94.237.58.195        ee:1b:db:ca:6f:3e   03000000-0000-4000-8089-000000000000   S     
+                  IPv4: 83.136.253.155 (f) 
+```
+
+We can see from the output that there is a new IP address with `(f)` next to it. This is the floating IP.
+
+We can start a new endpoint monitoring tool (`pinghttp` for example) using that new IP address and we should
+get a response as before.
+
+If we bump the version number (change `const Version = "1.1"` in `go/main.go`) and push that code to GitHub
+we will see our endpoint go down and approximately a minute later come back up again.
